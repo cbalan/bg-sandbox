@@ -1,0 +1,56 @@
+--- lib/functions/doAuthorize.php.orig	2009-06-05 18:37:41.000000000 -0400
++++ lib/functions/doAuthorize.php	2009-09-02 09:53:32.000000000 -0400
+@@ -19,6 +19,7 @@
+  * *********************************************************************************** */
+ require_once("users.inc.php");
+ require_once("roles.inc.php");
++require_once("ldap_api.php");
+ 
+ /** authorization function verifies login & password and set user session data */
+ function doAuthorize(&$db,$login,$pwd,&$msg)
+@@ -30,9 +31,31 @@
+ 		$user = new tlUser();
+ 		$user->login = $login;
+ 		$login_exists = ($user->readFromDB($db,tlUser::USER_O_SEARCH_BYLOGIN) >= tl::OK); 
++		
++		// auto-create ldap users if first ldap login
++		if (!$login_exists && auth_does_password_match($user, $pwd, array('method'=>'LDAP'))->status_ok==true)
++		{
++			$user->emailAddress = $login . '@domain.com'; // @todo this probably should come from ldap 
++			$user->firstName = $login;
++			$user->lastName = $login;
++			$user->globalRoleID = 5;
++			$user->locale = 'en_US';
++			$user->bActive = 1;
++			$user->setPassword(generatePassword());
++			$user->writeToDB($db);
++			
++			$login_exists = ($user->readFromDB($db,tlUser::USER_O_SEARCH_BYLOGIN) >= tl::OK);
++		}
++
+ 		if ($login_exists)
+ 	    {
+-			$password_check = auth_does_password_match($user,$pwd);
++			// authenticate against 'LDAP' with fallback to local database
++			foreach (array('LDAP', 'MD5') as $auth_backend) 
++			{
++				$password_check = auth_does_password_match($user,$pwd, array('method'=>$auth_backend));
++				if ($password_check->status_ok == true) break;
++			}
++			
+ 			if ($password_check->status_ok && $user->bActive)
+ 			{
+ 				// 20051007 MHT Solved  0000024 Session confusion 
+@@ -68,9 +91,9 @@
+ //         obj->status_ok = true/false
+ //         obj->msg = message to explain what has happened to a human being.
+ //
+-function auth_does_password_match(&$user,$cleartext_password)
++function auth_does_password_match(&$user,$cleartext_password, $conf=NULL)
+ {
+-	$authCfg = config_get('authentication');
++	$authCfg = is_array($conf)?$conf:config_get('authentication');
+   	$ret = new stdClass();
+ 	$ret->status_ok = true;
+ 	$ret->msg = 'ok';
+
