@@ -1,0 +1,5 @@
+core = "6.x"
+name = "Foobar stuff"
+project = "foo_bar"
+package = "Foobar"
+version = "6.x-1.0"

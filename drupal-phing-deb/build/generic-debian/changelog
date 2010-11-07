@@ -1,0 +1,5 @@
+${deb.control.package} (${deb.control.version}) ${deb.distribution}; urgency=${deb.urgency}
+
+  ${deb.changelog}
+
+ -- ${deb.maintainer.name} <${deb.maintainer.email}>  ${deb.date}

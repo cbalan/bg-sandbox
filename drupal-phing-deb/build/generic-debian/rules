@@ -1,0 +1,38 @@
+#!/usr/bin/make -f
+
+export DH_OPTIONS
+
+configure:
+
+build:
+
+clean:
+	dh_testdir
+	dh_testroot
+	dh_clean
+
+install:
+	dh_testdir
+	dh_testroot
+	dh_clean -k -i
+	find -maxdepth 1 -type d ! -name . ! -name debian|xargs dh_install --autodest
+
+binary-arch: build install
+
+binary-indep: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs
+	dh_link
+	dh_compress
+	dh_fixperms
+	dh_makeshlibs
+	dh_installdeb
+# 	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+
+.PHONY: build clean binary binary-indep binary-arch install configure

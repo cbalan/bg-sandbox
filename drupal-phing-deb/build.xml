@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<project name="foo" basedir="." default="main">
+  <property file="build.properties"/>
+  <import file="build/generic-build.xml"/>
+
+  <property name="build.target" value="${project.basedir}/target"/>
+  <property name="deb.target" value="${build.target}/deb"/>
+
+  <property name="foobar.drupal.home" value="/opt/foobar/drupal"/>
+  <property name="foobar.drupal.makefile" value="drupal/foobar-drupal.make"/>
+  <property name="foobar.drupal.build.target" value="${build.target}/drupal"/>
+  <property name="foobar.drupal.deb.target" value="${deb.target}/drupal"/>
+
+  <property name="foobar.version" value="1.0.0"/>
+
+  <target name="build" depends="build-foobar-drupal"/>
+  <target name="build-foobar-drupal" depends="prepare">
+    <delete dir="${foobar.drupal.build.target}"/>
+    <exec command="drush make ${foobar.drupal.makefile} ${foobar.drupal.build.target}" checkreturn="true"/>
+  </target>
+
+  <target name="package" depends="package-foobar-drupal-deb"/>
+  <target name="package-foobar-drupal-deb" depends="build-foobar-drupal">
+    <copy todir="${foobar.drupal.deb.target}/${foobar.drupal.home}">
+      <fileset dir="${foobar.drupal.build.target}">
+        <include name="**"/>
+      </fileset>
+    </copy>
+
+    <phingcall target="debian-package">
+      <property name="deb.control.package" value="foobar-drupal"/>
+      <property name="deb.control.verison" value="${foobar.version}"/>
+      <property name="deb.target" value="${foobar.drupal.deb.target}"/>
+    </phingcall>
+  </target>
+</project>

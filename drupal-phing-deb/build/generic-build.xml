@@ -1,0 +1,55 @@
+<project name="generic" basedir="." default="main">
+ 
+  <property name="build.target" value="${project.basedir}/target"/>
+
+  <target name="prepare">
+    <mkdir dir="${build.target}"/>
+  </target>
+  
+  <target name="clean">
+    <delete dir="${build.target}"/>
+  </target>
+
+  <target name="debian-package" depends="prepare">
+    <property name="deb.target" value="/tmp"/>
+    <property name="deb.control" value="build/generic-debian"/>
+    
+    <property name="deb.control.source" value="${deb.control.package}"/>
+    <property name="deb.control.buildDepends" value="debhelper (>= 5)"/>
+    <property name="deb.control.package" value="foo-bar"/>
+    <property name="deb.control.version" value="1.0"/>
+    <property name="deb.control.section" value="php"/>
+    <property name="deb.control.priority" value="optional"/> 
+    <property name="deb.control.arhitecture" value="all"/> 
+    <property name="deb.control.essential" value="no"/>
+    <property name="deb.control.depends" value=""/>
+    <property name="deb.control.predepends" value=""/>
+    <property name="deb.control.recommends" value=""/>
+    <property name="deb.control.suggests" value=""/>
+    <property name="deb.control.maintainer" value="john.doe@mail.com"/>
+    <property name="deb.control.conflicts" value=""/>
+    <property name="deb.control.provides" value=""/>
+    <property name="deb.control.homepage" value="http://www.john-doe.com"/>
+    <property name="deb.control.description" value="John's stuff"/>
+    
+    <property name="deb.distribution" value="foo-bar"/>
+    <property name="deb.urgency" value="low"/>
+    <property name="deb.changelog" value="* ${deb.control.version} build"/>
+    <property name="deb.date" value=""/>
+    
+    <property name="deb.maintainer.name" value="John Doe"/>
+    <property name="deb.maintainer.email" value="john.doe@mail.com"/>
+    <exec command="date -R" outputProperty="deb.date"/>
+    
+    <copy todir="${deb.target}/debian" overwrite="false">
+      <filterchain>
+        <expandproperties/>
+      </filterchain>
+      <fileset dir="${deb.control}">
+        <include name="**"/>
+      </fileset>
+    </copy>
+    <exec command="dpkg-buildpackage -rfakeroot -uc -us" checkreturn="true" dir="${deb.target}"/>
+  </target>
+
+</project>
