@@ -16,7 +16,15 @@
   <target name="build" depends="build-foobar-drupal"/>
   <target name="build-foobar-drupal" depends="prepare">
     <delete dir="${foobar.drupal.build.target}"/>
+ 
     <exec command="drush make ${foobar.drupal.makefile} ${foobar.drupal.build.target}" checkreturn="true"/>
+  
+    <copy todir="${foobar.drupal.build.target}" overwrite="true">
+      <fileset dir="drupal">
+        <include name="**"/>
+        <exclude name="*.make"/>
+      </fileset>
+    </copy>
   </target>
 
   <target name="package" depends="package-foobar-drupal-deb"/>
